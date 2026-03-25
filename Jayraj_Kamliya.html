@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HACK-OS — Jayraj Kamliya</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --green:#00ff88;--cyan:#00e5ff;--violet:#7c3aed;
+  --red:#ff4444;--yellow:#fbbf24;
+  --bg:#030a03;--desk:#060f0a;--panel:#0a1a10;
+  --border:#1a3020;--glass:rgba(6,20,10,0.88);
+  --text:#c8f0d8;--muted:#4a7a5a;--white:#f0fff4;
+}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Share Tech Mono',monospace;}
+body{background:var(--bg);color:var(--green);cursor:default;}
+
+/* ── ARROW CURSOR ── */
+*{cursor:default;}
+a,button,.win-dot,.d-icon,.tb-app,.tb-start,.ctx-item,.sm-item,.sm-power,.login-btn,.cf-btn,.sch,.chip,.contact-card,.proj-card{cursor:pointer;}
+.win-bar{cursor:move;}
+.win-resize{cursor:se-resize;}
+#term-input{cursor:text;}
+
+/* ── SCANLINES ── */
+.scanlines{position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.1) 3px,rgba(0,0,0,0.1) 4px);pointer-events:none;z-index:9000;animation:scan 10s linear infinite;}
+@keyframes scan{0%{background-position:0 0}100%{background-position:0 200px}}
+
+/* ── BOOT ── */
+#boot{position:fixed;inset:0;z-index:8000;background:#000;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:60px;}
+.boot-logo{font-family:'VT323',monospace;font-size:clamp(24px,4vw,52px);color:var(--green);text-shadow:0 0 20px var(--green);text-align:center;margin-bottom:32px;line-height:1.3;letter-spacing:2px;}
+.boot-log{width:100%;max-width:680px;font-size:13px;color:var(--green);line-height:2;text-shadow:0 0 6px var(--green);min-height:260px;}
+.b-line{display:block;opacity:0;}
+.b-line.v{opacity:1;}
+.b-line.ok::after{content:'  ✓ OK';color:var(--green);}
+.b-line.warn::after{content:'  ⚠ WARN';color:var(--yellow);}
+.boot-bar-wrap{width:100%;max-width:680px;margin-top:28px;}
+.boot-bar-label{font-size:12px;color:var(--muted);margin-bottom:8px;letter-spacing:2px;}
+.boot-bar-outer{width:100%;height:4px;background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.2);}
+.boot-bar-fill{height:100%;background:var(--green);width:0%;box-shadow:0 0 10px var(--green);transition:width .08s linear;}
+
+/* ── LOGIN ── */
+#login{position:fixed;inset:0;z-index:7000;background:radial-gradient(ellipse at 30% 50%,rgba(0,255,136,0.05),transparent 60%),#030a03;display:none;flex-direction:column;justify-content:center;align-items:center;gap:28px;}
+.login-time{font-family:'VT323',monospace;font-size:56px;color:var(--white);letter-spacing:4px;position:absolute;top:56px;text-shadow:0 0 20px rgba(0,255,136,0.3);}
+.login-date{font-size:13px;color:var(--muted);letter-spacing:3px;position:absolute;top:130px;}
+.login-avatar{width:88px;height:88px;border-radius:50%;border:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:38px;box-shadow:0 0 30px rgba(0,255,136,0.2);}
+.login-name{font-family:'VT323',monospace;font-size:28px;color:var(--white);letter-spacing:4px;}
+.login-hint{font-size:11px;color:var(--muted);letter-spacing:2px;}
+.login-input-wrap{display:flex;align-items:center;border:1px solid var(--border);background:rgba(0,255,136,0.04);}
+.login-input-wrap span{padding:10px 14px;color:var(--green);font-size:16px;}
+#login-input{background:transparent;border:none;outline:none;color:var(--white);font-family:'Share Tech Mono',monospace;font-size:14px;width:200px;padding:10px 0;letter-spacing:3px;}
+.login-btn{font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:3px;padding:12px 40px;background:transparent;border:1px solid var(--green);color:var(--green);transition:all .2s;text-transform:uppercase;}
+.login-btn:hover{background:rgba(0,255,136,0.1);box-shadow:0 0 20px rgba(0,255,136,0.2);}
+
+/* ── DESKTOP ── */
+#desktop{position:fixed;inset:0;z-index:100;display:none;background:radial-gradient(ellipse 80% 60% at 20% 30%,rgba(0,255,136,0.04),transparent 60%),radial-gradient(ellipse 60% 40% at 80% 70%,rgba(0,229,255,0.03),transparent 60%),var(--desk);overflow:hidden;}
+#matrix-canvas{position:absolute;inset:0;opacity:.05;pointer-events:none;z-index:0;}
+
+/* Desktop greeting */
+.desk-greeting{position:absolute;top:24px;right:28px;text-align:right;z-index:5;pointer-events:none;}
+.dg-name{font-family:'VT323',monospace;font-size:22px;color:rgba(0,255,136,0.6);letter-spacing:3px;}
+.dg-sub{font-size:10px;color:var(--muted);letter-spacing:2px;}
+
+/* Desktop icons */
+.desktop-icons{position:absolute;top:20px;left:20px;display:flex;flex-direction:column;gap:6px;z-index:10;}
+.d-icon{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px;width:76px;border:1px solid transparent;transition:all .2s;border-radius:2px;}
+.d-icon:hover{background:rgba(0,255,136,0.07);border-color:rgba(0,255,136,0.25);}
+.d-icon.selected{background:rgba(0,255,136,0.12);border-color:rgba(0,255,136,0.45);}
+.d-icon-img{font-size:26px;filter:drop-shadow(0 0 8px rgba(0,255,136,0.4));}
+.d-icon-label{font-size:9px;color:var(--text);letter-spacing:1px;text-align:center;line-height:1.3;}
+
+/* ── WINDOWS ── */
+.window{position:absolute;background:var(--glass);border:1px solid rgba(0,255,136,0.2);backdrop-filter:blur(20px);box-shadow:0 0 60px rgba(0,0,0,0.8),0 0 20px rgba(0,255,136,0.04);display:none;flex-direction:column;min-width:300px;min-height:180px;border-radius:2px;}
+.window.active{border-color:rgba(0,255,136,0.35);box-shadow:0 0 60px rgba(0,0,0,0.9),0 0 40px rgba(0,255,136,0.07),inset 0 0 0 1px rgba(0,255,136,0.08);}
+.win-bar{display:flex;align-items:center;gap:10px;padding:9px 14px;background:rgba(0,0,0,0.45);border-bottom:1px solid rgba(0,255,136,0.08);flex-shrink:0;}
+.win-dots{display:flex;gap:7px;}
+.win-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
+.win-dot.close{background:#ff5f57;box-shadow:0 0 5px #ff5f57;}
+.win-dot.min{background:#ffbd2e;box-shadow:0 0 5px #ffbd2e;}
+.win-dot.max{background:#28ca41;box-shadow:0 0 5px #28ca41;}
+.win-dot:hover{filter:brightness(1.3);}
+.win-title{flex:1;text-align:center;font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;}
+.win-title span{color:var(--green);}
+.win-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:20px;}
+.win-body::-webkit-scrollbar{width:3px;}
+.win-body::-webkit-scrollbar-thumb{background:rgba(0,255,136,0.3);}
+.win-resize{position:absolute;bottom:0;right:0;width:14px;height:14px;}
+.win-resize::after{content:'';position:absolute;bottom:3px;right:3px;width:7px;height:7px;border-right:1px solid rgba(0,255,136,0.35);border-bottom:1px solid rgba(0,255,136,0.35);}
+
+/* ── ABOUT WINDOW ── */
+.about-layout{display:flex;flex-direction:column;gap:20px;}
+.about-header{display:flex;align-items:center;gap:18px;padding-bottom:18px;border-bottom:1px solid var(--border);}
+.about-avatar{width:68px;height:68px;border-radius:50%;border:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:30px;flex-shrink:0;box-shadow:0 0 20px rgba(0,255,136,0.2);}
+.about-info h2{font-family:'Outfit',sans-serif;font-size:20px;font-weight:900;color:var(--white);letter-spacing:-0.5px;margin-bottom:3px;}
+.about-role{font-size:11px;color:var(--cyan);letter-spacing:2px;margin-bottom:3px;}
+.about-loc{font-size:10px;color:var(--muted);letter-spacing:1px;}
+.about-text{font-size:12px;color:var(--text);line-height:2;}
+.about-text strong{color:var(--green);}
+.about-edu{border:1px solid var(--border);padding:14px;background:rgba(0,255,136,0.02);}
+.edu-label{font-size:10px;color:var(--cyan);letter-spacing:2px;margin-bottom:6px;}
+.edu-college{font-size:12px;color:var(--white);}
+.edu-deg{font-size:11px;color:var(--muted);margin-top:3px;}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:var(--border);}
+.stat-cell{background:var(--panel);padding:14px;text-align:center;}
+.stat-num{display:block;font-family:'VT323',monospace;font-size:34px;color:var(--green);text-shadow:0 0 12px var(--green);line-height:1;}
+.stat-lbl{font-size:9px;color:var(--muted);letter-spacing:2px;}
+.about-tags{display:flex;flex-wrap:wrap;gap:7px;}
+.tag{font-size:10px;padding:4px 10px;border:1px solid rgba(0,255,136,0.2);color:var(--green);background:rgba(0,255,136,0.04);letter-spacing:1px;}
+.tag.c{border-color:rgba(0,229,255,0.2);color:var(--cyan);background:rgba(0,229,255,0.04);}
+
+/* ── SKILLS WINDOW ── */
+.skills-layout{display:flex;flex-direction:column;gap:18px;}
+.skill-group{border:1px solid var(--border);padding:14px;}
+.sg-title{font-size:10px;letter-spacing:3px;color:var(--cyan);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.sg-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.skill-bars{display:flex;flex-direction:column;gap:9px;}
+.s-bar-row{display:flex;flex-direction:column;gap:4px;}
+.s-bar-top{display:flex;justify-content:space-between;font-size:11px;color:var(--text);}
+.s-bar-pct{color:var(--green);}
+.s-bar-outer{height:3px;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.1);}
+.s-bar-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--cyan));box-shadow:0 0 6px var(--green);width:0%;transition:width 1.2s ease;}
+.chip-wrap{display:flex;flex-wrap:wrap;gap:7px;}
+.sch{font-size:10px;padding:4px 10px;border:1px solid var(--border);color:var(--muted);letter-spacing:1px;transition:all .2s;}
+.sch:hover{border-color:var(--green);color:var(--green);background:rgba(0,255,136,0.05);}
+
+/* ── PROJECTS WINDOW ── */
+.proj-layout{display:flex;flex-direction:column;gap:10px;}
+.proj-card{border:1px solid var(--border);padding:16px;transition:all .3s;position:relative;overflow:hidden;}
+.proj-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--green),var(--cyan));transform:scaleY(0);transition:transform .3s;transform-origin:bottom;}
+.proj-card:hover{border-color:rgba(0,255,136,0.3);background:rgba(0,255,136,0.02);}
+.proj-card:hover::before{transform:scaleY(1);}
+.pc-num{font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:6px;}
+.pc-name{font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;color:var(--white);letter-spacing:-0.3px;margin-bottom:6px;text-transform:uppercase;}
+.pc-badge{font-size:9px;padding:2px 8px;border:1px solid rgba(0,229,255,0.3);color:var(--cyan);display:inline-block;margin-bottom:8px;letter-spacing:1px;}
+.pc-desc{font-size:11px;color:var(--muted);line-height:1.8;margin-bottom:10px;}
+.pc-stack{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+.pst{font-size:9px;padding:2px 7px;border:1px solid var(--border);color:var(--muted);letter-spacing:1px;}
+.pc-links{display:flex;gap:14px;}
+.pc-link{font-size:10px;letter-spacing:1px;color:var(--cyan);text-decoration:none;transition:color .2s;}
+.pc-link::before{content:'→ ';}
+.pc-link:hover{color:var(--white);}
+
+/* ── TERMINAL WINDOW ── */
+.terminal-layout{display:flex;flex-direction:column;height:100%;}
+.term-output{flex:1;overflow-y:auto;font-size:12px;line-height:1.9;color:var(--green);padding-bottom:8px;}
+.term-output::-webkit-scrollbar{width:3px;}
+.term-output::-webkit-scrollbar-thumb{background:rgba(0,255,136,0.3);}
+.t-prompt{color:var(--cyan);}
+.t-cmd{color:var(--white);}
+.t-out{color:var(--green);padding-left:6px;}
+.t-out.dim{color:var(--muted);}
+.t-out.hi{color:var(--cyan);}
+.t-err{color:var(--red);padding-left:6px;}
+.term-input-row{display:flex;align-items:center;gap:8px;border-top:1px solid var(--border);padding-top:10px;margin-top:6px;}
+.term-prompt-static{color:var(--cyan);font-size:12px;white-space:nowrap;}
+#term-input{flex:1;background:transparent;border:none;outline:none;color:var(--white);font-family:'Share Tech Mono',monospace;font-size:12px;}
+
+/* ── CONTACT WINDOW ── */
+.contact-layout{display:flex;flex-direction:column;gap:12px;}
+.contact-card{display:flex;align-items:center;gap:14px;padding:14px;border:1px solid var(--border);text-decoration:none;transition:all .2s;}
+.contact-card:hover{border-color:rgba(0,255,136,0.4);background:rgba(0,255,136,0.03);}
+.cc-icon{font-size:20px;width:36px;text-align:center;flex-shrink:0;}
+.cc-info .cc-lbl{font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:3px;}
+.cc-info .cc-val{font-size:12px;color:var(--white);}
+
+/* ── SNAKE GAME WINDOW ── */
+#snake-canvas{display:block;background:#030a03;border:1px solid var(--border);}
+.snake-controls{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:11px;color:var(--muted);}
+.snake-score{color:var(--green);font-size:14px;font-family:'VT323',monospace;}
+.snake-btn{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;padding:6px 16px;background:transparent;border:1px solid var(--green);color:var(--green);transition:all .2s;}
+.snake-btn:hover{background:rgba(0,255,136,0.1);}
+.snake-hint{font-size:10px;color:var(--muted);letter-spacing:1px;text-align:center;margin-top:6px;}
+
+/* ── QUOTE WINDOW ── */
+.quote-layout{display:flex;flex-direction:column;gap:20px;height:100%;justify-content:center;align-items:center;text-align:center;padding:10px;}
+.quote-icon{font-size:40px;margin-bottom:8px;}
+.quote-text{font-family:'Outfit',sans-serif;font-size:18px;font-weight:300;color:var(--white);line-height:1.7;font-style:italic;max-width:380px;}
+.quote-text::before{content:'"';color:var(--green);font-size:32px;font-style:normal;}
+.quote-text::after{content:'"';color:var(--green);font-size:32px;font-style:normal;}
+.quote-author{font-size:11px;color:var(--cyan);letter-spacing:3px;margin-top:8px;}
+.quote-btn{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;padding:8px 20px;background:transparent;border:1px solid var(--green);color:var(--green);transition:all .2s;margin-top:8px;}
+.quote-btn:hover{background:rgba(0,255,136,0.1);}
+
+/* ── TASKBAR ── */
+#taskbar{position:fixed;bottom:0;left:0;right:0;height:46px;background:rgba(3,10,3,0.92);border-top:1px solid rgba(0,255,136,0.12);backdrop-filter:blur(20px);display:none;align-items:center;padding:0 14px;gap:8px;z-index:8000;}
+.tb-start{font-family:'VT323',monospace;font-size:17px;padding:5px 12px;border:1px solid rgba(0,255,136,0.3);color:var(--green);letter-spacing:2px;transition:all .2s;flex-shrink:0;}
+.tb-start:hover{background:rgba(0,255,136,0.1);}
+.tb-divider{width:1px;height:26px;background:rgba(0,255,136,0.1);flex-shrink:0;}
+.tb-apps{display:flex;gap:3px;flex:1;overflow:hidden;}
+.tb-app{font-size:9px;letter-spacing:1px;padding:4px 12px;border:1px solid transparent;color:var(--muted);transition:all .2s;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;}
+.tb-app.open{border-color:rgba(0,255,136,0.18);color:var(--text);}
+.tb-app.active-win{border-color:rgba(0,255,136,0.5);color:var(--green);background:rgba(0,255,136,0.06);}
+.tb-app:hover{background:rgba(0,255,136,0.05);}
+.tb-right{display:flex;align-items:center;gap:14px;flex-shrink:0;}
+.tb-clock{font-family:'VT323',monospace;font-size:18px;color:var(--green);letter-spacing:2px;text-shadow:0 0 8px rgba(0,255,136,0.4);}
+.tb-date2{font-size:9px;color:var(--muted);letter-spacing:1px;}
+.tb-status{display:flex;align-items:center;gap:5px;font-size:9px;color:var(--green);}
+.online-dot{width:6px;height:6px;background:#4ade80;border-radius:50%;box-shadow:0 0 8px #4ade80;animation:od 2s ease infinite;}
+@keyframes od{0%,100%{box-shadow:0 0 5px #4ade80}50%{box-shadow:0 0 14px #4ade80}}
+
+/* ── RIGHT-CLICK MENU ── */
+#ctx-menu{position:fixed;z-index:9000;background:rgba(3,10,3,0.97);border:1px solid rgba(0,255,136,0.2);backdrop-filter:blur(20px);padding:5px 0;min-width:190px;display:none;box-shadow:0 20px 60px rgba(0,0,0,0.8);}
+.ctx-item{padding:8px 18px;font-size:10px;letter-spacing:2px;color:var(--text);transition:all .15s;display:flex;align-items:center;gap:10px;}
+.ctx-item:hover{background:rgba(0,255,136,0.08);color:var(--green);}
+.ctx-sep{border-top:1px solid var(--border);margin:4px 0;}
+.ctx-icon{font-size:13px;width:16px;text-align:center;}
+
+/* ── START MENU ── */
+#start-menu{position:fixed;bottom:50px;left:14px;z-index:8500;background:rgba(3,10,3,0.97);border:1px solid rgba(0,255,136,0.18);backdrop-filter:blur(20px);width:260px;display:none;box-shadow:0 -20px 60px rgba(0,0,0,0.8);}
+.sm-header{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.sm-avatar{width:40px;height:40px;border-radius:50%;border:1px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.sm-name{font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:var(--white);}
+.sm-role{font-size:9px;color:var(--muted);letter-spacing:1px;}
+.sm-item{padding:10px 18px;font-size:10px;letter-spacing:2px;color:var(--text);transition:all .15s;display:flex;align-items:center;gap:10px;text-transform:uppercase;}
+.sm-item:hover{background:rgba(0,255,136,0.08);color:var(--green);}
+.sm-icon{font-size:14px;width:20px;text-align:center;}
+.sm-power{border-top:1px solid var(--border);padding:10px 18px;font-size:10px;color:var(--red);display:flex;align-items:center;gap:10px;transition:all .15s;}
+.sm-power:hover{background:rgba(255,68,68,0.08);}
+
+/* ── NOTIFICATIONS ── */
+#notif-area{position:fixed;top:16px;right:16px;z-index:9500;display:flex;flex-direction:column;gap:7px;pointer-events:none;}
+.notif{background:rgba(3,10,3,0.97);border:1px solid rgba(0,255,136,0.3);padding:12px 16px;font-size:11px;color:var(--text);letter-spacing:1px;min-width:260px;transform:translateX(110%);transition:transform .3s ease;box-shadow:0 10px 40px rgba(0,0,0,0.6);}
+.notif.show{transform:translateX(0);}
+.notif-title{color:var(--green);margin-bottom:3px;font-size:11px;letter-spacing:2px;}
+
+/* ── GLITCH ── */
+.glitch-text{animation:gt 6s infinite;}
+@keyframes gt{0%,94%,100%{text-shadow:0 0 10px var(--green)}95%{text-shadow:-3px 0 var(--red),3px 0 var(--cyan)}97%{text-shadow:3px 0 var(--red),-3px 0 var(--cyan)}}
+</style>
+</head>
+<body>
+
+<div class="scanlines"></div>
+<div id="notif-area"></div>
+
+<!-- ═══════════════════════════════════ BOOT ═══════════════════════════════════ -->
+<div id="boot">
+  <div class="boot-logo glitch-text">
+    ██╗  ██╗ █████╗  ██████╗██╗  ██╗      ██████╗ ███████╗<br>
+    ██║  ██║██╔══██╗██╔════╝██║ ██╔╝     ██╔═══██╗██╔════╝<br>
+    ███████║███████║██║     █████╔╝      ██║   ██║███████╗<br>
+    ██╔══██║██╔══██║██║     ██╔═██╗      ██║   ██║╚════██║<br>
+    ██║  ██║██║  ██║╚██████╗██║  ██╗     ╚██████╔╝███████║<br>
+    ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝      ╚═════╝ ╚══════╝<br>
+    <span style="font-size:0.55em;color:var(--muted);letter-spacing:6px;">— JAYRAJ KAMLIYA PORTFOLIO OS v1.0 —</span>
+  </div>
+  <div id="boot-log" class="boot-log"></div>
+  <div class="boot-bar-wrap">
+    <div class="boot-bar-label" id="boot-lbl">INITIALIZING...</div>
+    <div class="boot-bar-outer"><div class="boot-bar-fill" id="boot-fill"></div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ LOGIN ═══════════════════════════════════ -->
+<div id="login">
+  <div class="login-time" id="login-time">00:00</div>
+  <div class="login-date" id="login-date">Monday, January 01</div>
+  <div class="login-avatar">👨‍💻</div>
+  <div class="login-name">JAYRAJ_KAMLIYA</div>
+  <div class="login-hint">PRESS ENTER OR CLICK LOGIN</div>
+  <div class="login-input-wrap">
+    <span>🔒</span>
+    <input type="password" id="login-input" placeholder="••••••••" autocomplete="off">
+  </div>
+  <button class="login-btn" onclick="doLogin()">LOGIN →</button>
+</div>
+
+<!-- ═══════════════════════════════════ DESKTOP ═══════════════════════════════════ -->
+<div id="desktop">
+  <canvas id="matrix-canvas"></canvas>
+
+  <div class="desk-greeting">
+    <div class="dg-name">JAYRAJ@HACK-OS</div>
+    <div class="dg-sub">Computer Engineering Student • Mumbai</div>
+  </div>
+
+  <!-- Icons -->
+  <div class="desktop-icons">
+    <div class="d-icon" ondblclick="openWindow('about')" onclick="selectIcon(this)">
+      <div class="d-icon-img">👤</div>
+      <div class="d-icon-label">about.exe</div>
+    </div>
+    <div class="d-icon" ondblclick="openWindow('skills')" onclick="selectIcon(this)">
+      <div class="d-icon-img">⚙️</div>
+      <div class="d-icon-label">skills.sh</div>
+    </div>
+    <div class="d-icon" ondblclick="openWindow('projects')" onclick="selectIcon(this)">
+      <div class="d-icon-img">📁</div>
+      <div class="d-icon-label">projects/</div>
+    </div>
+    <div class="d-icon" ondblclick="openWindow('terminal')" onclick="selectIcon(this)">
+      <div class="d-icon-img">💻</div>
+      <div class="d-icon-label">terminal</div>
+    </div>
+    <div class="d-icon" ondblclick="openWindow('contact')" onclick="selectIcon(this)">
+      <div class="d-icon-img">📡</div>
+      <div class="d-icon-label">contact.txt</div>
+    </div>
+    <div class="d-icon" ondblclick="openWindow('snake')" onclick="selectIcon(this)">
+      <div class="d-icon-img">🐍</div>
+      <div class="d-icon-label">snake.exe</div>
+    </div>
+    <div class="d-icon" ondblclick="openWindow('quote')" onclick="selectIcon(this)">
+      <div class="d-icon-img">💭</div>
+      <div class="d-icon-label">daily_quote</div>
+    </div>
+  </div>
+
+  <!-- ══ ABOUT WINDOW ══ -->
+  <div class="window" id="win-about" style="width:500px;height:560px;top:70px;left:110px;">
+    <div class="win-bar" id="bar-about">
+      <div class="win-dots">
+        <div class="win-dot close" onclick="closeWindow('about')"></div>
+        <div class="win-dot min" onclick="minWindow('about')"></div>
+        <div class="win-dot max" onclick="maxWindow('about')"></div>
+      </div>
+      <div class="win-title"><span>//</span> about.exe — Jayraj Kamliya</div>
+    </div>
+    <div class="win-body">
+      <div class="about-layout">
+        <div class="about-header">
+          <div class="about-avatar">👨‍💻</div>
+          <div class="about-info">
+            <h2>Jayraj Kamliya</h2>
+            <div class="about-role">COMPUTER ENGINEERING STUDENT</div>
+            <div class="about-loc">📍 Mumbai, Maharashtra, India</div>
+            <div class="about-loc" style="margin-top:3px;">🚀 Aspiring Backend Developer</div>
+          </div>
+        </div>
+        <div class="about-text">
+          Hi! I'm <strong>Jayraj Kamliya</strong> 👋 — A Computer Engineering student passionate about building <strong>real-world software solutions</strong>. Expanding my stack from core programming to modern web development. Deeply focused on <strong>Data Structures & Algorithms</strong>, Problem Solving, and exploring <strong>Backend Development & Quantitative Analysis</strong>. Always learning, always improving. 📚
+        </div>
+        <div class="about-edu">
+          <div class="edu-label">🎓 EDUCATION</div>
+          <div class="edu-college">Shah and Anchor Kutchhi Engineering College (SAKEC)</div>
+          <div class="edu-deg">B.Tech — Computer Engineering &nbsp;|&nbsp; Currently Studying</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-cell">
+            <span class="stat-num">5+</span>
+            <span class="stat-lbl">PROJECTS</span>
+          </div>
+          <div class="stat-cell">
+            <span class="stat-num">∞</span>
+            <span class="stat-lbl">CURIOSITY</span>
+          </div>
+          <div class="stat-cell">
+            <span class="stat-num">☕</span>
+            <span class="stat-lbl">COFFEE</span>
+          </div>
+        </div>
+        <div class="about-tags">
+          <span class="tag">Java</span>
+          <span class="tag">Python</span>
+          <span class="tag">JavaScript</span>
+          <span class="tag">C / C++</span>
+          <span class="tag c">DSA</span>
+          <span class="tag c">Backend Dev</span>
+          <span class="tag c">Quant Analysis</span>
+          <span class="tag">Problem Solving</span>
+        </div>
+      </div>
+    </div>
+    <div class="win-resize" id="rsz-about"></div>
+  </div>
+
+  <!-- ══ SKILLS WINDOW ══ -->
+  <div class="window" id="win-skills" style="width:460px;height:540px;top:50px;left:190px;">
+    <div class="win-bar" id="bar-skills">
+      <div class="win-dots">
+        <div class="win-dot close" onclick="closeWindow('skills')"></div>
+        <div class="win-dot min" onclick="minWindow('skills')"></div>
+        <div class="win-dot max" onclick="maxWindow('skills')"></div>
+      </div>
+      <div class="win-title"><span>//</span> skills.sh</div>
+    </div>
+    <div class="win-body">
+      <div class="skills-layout">
+        <div class="skill-group">
+          <div class="sg-title">LANGUAGES</div>
+          <div class="skill-bars">
+            <div class="s-bar-row"><div class="s-bar-top"><span>Java</span><span class="s-bar-pct">82%</span></div><div class="s-bar-outer"><div class="s-bar-fill" data-w="82"></div></div></div>
+            <div class="s-bar-row"><div class="s-bar-top"><span>Python</span><span class="s-bar-pct">78%</span></div><div class="s-bar-outer"><div class="s-bar-fill" data-w="78"></div></div></div>
+            <div class="s-bar-row"><div class="s-bar-top"><span>JavaScript</span><span class="s-bar-pct">75%</span></div><div class="s-bar-outer"><div class="s-bar-fill" data-w="75"></div></div></div>
+            <div class="s-bar-row"><div class="s-bar-top"><span>C / C++</span><span class="s-bar-pct">70%</span></div><div class="s-bar-outer"><div class="s-bar-fill" data-w="70"></div></div></div>
+            <div class="s-bar-row"><div class="s-bar-top"><span>TypeScript</span><span class="s-bar-pct">60%</span></div><div class="s-bar-outer"><div class="s-bar-fill" data-w="60"></div></div></div>
+            <div class="s-bar-row"><div class="s-bar-top"><span>Kotlin</span><span class="s-bar-pct">55%</span></div><div class="s-bar-outer"><div class="s-bar-fill" data-w="55"></div></div></div>
+          </div>
+        </div>
+        <div class="skill-group">
+          <div class="sg-title">FRAMEWORKS & RUNTIME</div>
+          <div class="chip-wrap">
+            <span class="sch">Node.js</span><span class="sch">Django</span><span class="sch">Next.js</span>
+            <span class="sch">Electron.js</span><span class="sch">Express</span>
+          </div>
+        </div>
+        <div class="skill-group">
+          <div class="sg-title">DATABASES</div>
+          <div class="chip-wrap">
+            <span class="sch">MySQL</span><span class="sch">SQLite</span><span class="sch">MongoDB</span>
+          </div>
+        </div>
+        <div class="skill-group">
+          <div class="sg-title">TOOLS & PLATFORMS</div>
+          <div class="chip-wrap">
+            <span class="sch">Git</span><span class="sch">GitHub</span><span class="sch">AWS</span>
+            <span class="sch">Figma</span><span class="sch">Canva</span><span class="sch">HTML5</span>
+          </div>
+        </div>
+        <div class="skill-group">
+          <div class="sg-title">CURRENTLY LEARNING</div>
+          <div class="chip-wrap">
+            <span class="sch">DSA (Java)</span><span class="sch">System Design</span>
+            <span class="sch">Quant Analysis</span><span class="sch">REST APIs</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="win-resize" id="rsz-skills"></div>
+  </div>
+
+  <!-- ══ PROJECTS WINDOW ══ -->
+  <div class="window" id="win-projects" style="width:560px;height:600px;top:60px;left:150px;">
+    <div class="win-bar" id="bar-projects">
+      <div class="win-dots">
+        <div class="win-dot close" onclick="closeWindow('projects')"></div>
+        <div class="win-dot min" onclick="minWindow('projects')"></div>
+        <div class="win-dot max" onclick="maxWindow('projects')"></div>
+      </div>
+      <div class="win-title"><span>//</span> ~/projects — Jayraj Kamliya</div>
+    </div>
+    <div class="win-body">
+      <div class="proj-layout">
+
+        <div class="proj-card">
+          <div class="pc-num">// PROJECT_01 — IN PROGRESS 🔨</div>
+          <div class="pc-name">Music Converter & Playlist Migrator</div>
+          <div class="pc-badge">🎵 ACTIVE DEVELOPMENT</div>
+          <div class="pc-desc">A cross-platform tool to convert and migrate playlists between music streaming services (Spotify, YouTube Music, Apple Music, etc.). Handles track matching, metadata sync, and bulk playlist transfer — solving a real problem for music lovers switching platforms.</div>
+          <div class="pc-stack">
+            <span class="pst">Java</span><span class="pst">Spotify API</span><span class="pst">YouTube API</span><span class="pst">OAuth2</span>
+          </div>
+          <div class="pc-links">
+            <a href="https://github.com/JayrajAshokKamliya/music-converter" target="_blank" class="pc-link">GitHub</a>
+          </div>
+        </div>
+
+        <div class="proj-card">
+          <div class="pc-num">// PROJECT_02</div>
+          <div class="pc-name">Dynamic Island for Laptop</div>
+          <div class="pc-badge">💻 DESKTOP APP</div>
+          <div class="pc-desc">Brings Apple's Dynamic Island concept to laptops — a floating, interactive HUD that displays live system info, notifications, music playback, and app alerts in a sleek animated overlay on your desktop.</div>
+          <div class="pc-stack">
+            <span class="pst">Electron.js</span><span class="pst">JavaScript</span><span class="pst">HTML/CSS</span><span class="pst">Node.js</span>
+          </div>
+          <div class="pc-links">
+            <a href="https://github.com/JayrajAshokKamliya" target="_blank" class="pc-link">GitHub</a>
+          </div>
+        </div>
+
+        <div class="proj-card">
+          <div class="pc-num">// PROJECT_03</div>
+          <div class="pc-name">Tic Tac Toe</div>
+          <div class="pc-badge">🎮 GAME</div>
+          <div class="pc-desc">Classic Tic Tac Toe game built in Python with clean game logic, win detection, and a simple interactive interface. Great showcase of core programming fundamentals and algorithm thinking.</div>
+          <div class="pc-stack">
+            <span class="pst">Python</span>
+          </div>
+          <div class="pc-links">
+            <a href="https://github.com/JayrajAshokKamliya/Tic_Tac_Toe" target="_blank" class="pc-link">GitHub</a>
+          </div>
+        </div>
+
+        <div class="proj-card">
+          <div class="pc-num">// PROJECT_04</div>
+          <div class="pc-name">SAKEC Experiment Tracker</div>
+          <div class="pc-badge">🎓 COLLEGE PROJECT</div>
+          <div class="pc-desc">Academic experiment management system built for SAKEC — organizes lab experiments, tracks submissions, and manages student records efficiently.</div>
+          <div class="pc-stack">
+            <span class="pst">Web Technologies</span>
+          </div>
+          <div class="pc-links">
+            <a href="https://github.com/JayrajAshokKamliya/sakec-exp4" target="_blank" class="pc-link">GitHub</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="win-resize" id="rsz-projects"></div>
+  </div>
+
+  <!-- ══ TERMINAL WINDOW ══ -->
+  <div class="window" id="win-terminal" style="width:520px;height:380px;top:110px;left:130px;">
+    <div class="win-bar" id="bar-terminal">
+      <div class="win-dots">
+        <div class="win-dot close" onclick="closeWindow('terminal')"></div>
+        <div class="win-dot min" onclick="minWindow('terminal')"></div>
+        <div class="win-dot max" onclick="maxWindow('terminal')"></div>
+      </div>
+      <div class="win-title"><span>$</span> hack-os — jayraj@terminal</div>
+    </div>
+    <div class="win-body" style="display:flex;flex-direction:column;padding:14px;">
+      <div class="terminal-layout">
+        <div class="term-output" id="term-out">
+          <span class="t-out">HACK-OS Terminal v1.0 — Jayraj Kamliya's Portfolio</span><br>
+          <span class="t-out dim">Type 'help' for available commands.</span><br><br>
+        </div>
+        <div class="term-input-row">
+          <span class="term-prompt-static">jayraj@hack-os:~$</span>
+          <input type="text" id="term-input" autocomplete="off" spellcheck="false" onkeydown="handleTermKey(event)" placeholder=" ">
+        </div>
+      </div>
+    </div>
+    <div class="win-resize" id="rsz-terminal"></div>
+  </div>
+
+  <!-- ══ CONTACT WINDOW ══ -->
+  <div class="window" id="win-contact" style="width:420px;height:380px;top:90px;left:170px;">
+    <div class="win-bar" id="bar-contact">
+      <div class="win-dots">
+        <div class="win-dot close" onclick="closeWindow('contact')"></div>
+        <div class="win-dot min" onclick="minWindow('contact')"></div>
+        <div class="win-dot max" onclick="maxWindow('contact')"></div>
+      </div>
+      <div class="win-title"><span>//</span> contact.txt</div>
+    </div>
+    <div class="win-body">
+      <div class="contact-layout">
+        <a href="mailto:jayrajkamliya999@gmail.com" class="contact-card">
+          <div class="cc-icon">✉️</div>
+          <div class="cc-info"><div class="cc-lbl">EMAIL</div><div class="cc-val">jayrajkamliya999@gmail.com</div></div>
+        </a>
+        <a href="https://www.linkedin.com/in/jayraj-kamliya-167a66291" target="_blank" class="contact-card">
+          <div class="cc-icon">💼</div>
+          <div class="cc-info"><div class="cc-lbl">LINKEDIN</div><div class="cc-val">jayraj-kamliya-167a66291</div></div>
+        </a>
+        <a href="https://github.com/JayrajAshokKamliya" target="_blank" class="contact-card">
+          <div class="cc-icon">🐙</div>
+          <div class="cc-info"><div class="cc-lbl">GITHUB</div><div class="cc-val">JayrajAshokKamliya</div></div>
+        </a>
+        <a href="https://instagram.com/jayraj__kamliya" target="_blank" class="contact-card">
+          <div class="cc-icon">📸</div>
+          <div class="cc-info"><div class="cc-lbl">INSTAGRAM</div><div class="cc-val">@jayraj__kamliya</div></div>
+        </a>
+        <a href="#" class="contact-card" onclick="showNotif('Resume','Resume coming soon! Building an ATS-optimised one. 🚀')">
+          <div class="cc-icon">📄</div>
+          <div class="cc-info"><div class="cc-lbl">RESUME</div><div class="cc-val">Coming Soon (ATS-Optimised) →</div></div>
+        </a>
+      </div>
+    </div>
+    <div class="win-resize" id="rsz-contact"></div>
+  </div>
+
+  <!-- ══ SNAKE GAME WINDOW ══ -->
+  <div class="window" id="win-snake" style="width:380px;height:440px;top:80px;left:200px;">
+    <div class="win-bar" id="bar-snake">
+      <div class="win-dots">
+        <div class="win-dot close" onclick="closeWindow('snake')"></div>
+        <div class="win-dot min" onclick="minWindow('snake')"></div>
+        <div class="win-dot max" onclick="maxWindow('snake')"></div>
+      </div>
+      <div class="win-title"><span>🐍</span> snake.exe</div>
+    </div>
+    <div class="win-body" style="display:flex;flex-direction:column;align-items:center;padding:14px;">
+      <canvas id="snake-canvas" width="320" height="320"></canvas>
+      <div class="snake-controls" style="width:320px;">
+        <div><span style="font-size:10px;color:var(--muted);letter-spacing:1px;">SCORE: </span><span class="snake-score" id="snake-score">0</span></div>
+        <button class="snake-btn" onclick="startSnake()">▶ START</button>
+        <div><span style="font-size:10px;color:var(--muted);letter-spacing:1px;">BEST: </span><span class="snake-score" id="snake-best">0</span></div>
+      </div>
+      <div class="snake-hint">Use ARROW KEYS or WASD to move</div>
+    </div>
+    <div class="win-resize" id="rsz-snake"></div>
+  </div>
+
+  <!-- ══ QUOTE WINDOW ══ -->
+  <div class="window" id="win-quote" style="width:420px;height:340px;top:100px;left:160px;">
+    <div class="win-bar" id="bar-quote">
+      <div class="win-dots">
+        <div class="win-dot close" onclick="closeWindow('quote')"></div>
+        <div class="win-dot min" onclick="minWindow('quote')"></div>
+        <div class="win-dot max" onclick="maxWindow('quote')"></div>
+      </div>
+      <div class="win-title"><span>💭</span> daily_quote</div>
+    </div>
+    <div class="win-body">
+      <div class="quote-layout">
+        <div class="quote-icon">💭</div>
+        <div class="quote-text" id="quote-text">The best way to predict the future is to create it.</div>
+        <div class="quote-author" id="quote-author">— Abraham Lincoln</div>
+        <button class="quote-btn" onclick="newQuote()">↻ NEW QUOTE</button>
+      </div>
+    </div>
+    <div class="win-resize" id="rsz-quote"></div>
+  </div>
+
+  <!-- RIGHT CLICK MENU -->
+  <div id="ctx-menu">
+    <div class="ctx-item" onclick="openWindow('about')"><span class="ctx-icon">👤</span>Open About</div>
+    <div class="ctx-item" onclick="openWindow('terminal')"><span class="ctx-icon">💻</span>Open Terminal</div>
+    <div class="ctx-item" onclick="openWindow('snake')"><span class="ctx-icon">🐍</span>Play Snake</div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" onclick="openAllWindows()"><span class="ctx-icon">🖥️</span>Open All Apps</div>
+    <div class="ctx-item" onclick="closeAllWindows()"><span class="ctx-icon">❌</span>Close All</div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" onclick="showNotif('System Info','HACK-OS v1.0 | Jayraj Kamliya Portfolio | Mumbai 🇮🇳')"><span class="ctx-icon">ℹ️</span>System Info</div>
+  </div>
+
+  <!-- START MENU -->
+  <div id="start-menu">
+    <div class="sm-header">
+      <div class="sm-avatar">👨‍💻</div>
+      <div>
+        <div class="sm-name">Jayraj Kamliya</div>
+        <div class="sm-role">CS Student • Mumbai</div>
+      </div>
+    </div>
+    <div class="sm-item" onclick="openWindow('about');toggleStart()"><span class="sm-icon">👤</span>About Me</div>
+    <div class="sm-item" onclick="openWindow('skills');toggleStart()"><span class="sm-icon">⚙️</span>Skills</div>
+    <div class="sm-item" onclick="openWindow('projects');toggleStart()"><span class="sm-icon">📁</span>Projects</div>
+    <div class="sm-item" onclick="openWindow('terminal');toggleStart()"><span class="sm-icon">💻</span>Terminal</div>
+    <div class="sm-item" onclick="openWindow('contact');toggleStart()"><span class="sm-icon">📡</span>Contact</div>
+    <div class="sm-item" onclick="openWindow('snake');toggleStart()"><span class="sm-icon">🐍</span>Snake Game</div>
+    <div class="sm-item" onclick="openWindow('quote');toggleStart()"><span class="sm-icon">💭</span>Daily Quote</div>
+    <div class="sm-power" onclick="shutDown()"><span class="sm-icon">⏻</span>Shut Down</div>
+  </div>
+</div>
+
+<!-- TASKBAR -->
+<div id="taskbar">
+  <div class="tb-start" onclick="toggleStart()">⬡ HACK</div>
+  <div class="tb-divider"></div>
+  <div class="tb-apps" id="tb-apps"></div>
+  <div class="tb-right">
+    <div class="tb-status"><span class="online-dot"></span>ONLINE</div>
+    <div>
+      <div class="tb-clock" id="tb-clock">00:00</div>
+      <div class="tb-date2" id="tb-date2">JAN 01</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════ BOOT ═══════════════════ */
+const bootLines=[
+  {t:'Initializing HACK-OS kernel v1.0...',type:'ok',d:0},
+  {t:'Loading user profile: jayraj@hack-os...',type:'ok',d:200},
+  {t:'Mounting /dev/portfolio...',type:'ok',d:380},
+  {t:'Starting memory allocator...',type:'ok',d:540},
+  {t:'Loading skill modules [java]...',type:'ok',d:680},
+  {t:'Loading skill modules [python]...',type:'ok',d:810},
+  {t:'Loading skill modules [javascript]...',type:'ok',d:940},
+  {t:'Loading skill modules [node.js]...',type:'ok',d:1060},
+  {t:'Loading skill modules [django]...',type:'ok',d:1170},
+  {t:'Importing project: music-converter...',type:'ok',d:1300},
+  {t:'Importing project: dynamic-island...',type:'ok',d:1420},
+  {t:'Importing project: tic-tac-toe...',type:'ok',d:1530},
+  {t:'Checking outdated modules [cobol]...',type:'warn',d:1650},
+  {t:'Connecting to GitHub: JayrajAshokKamliya...',type:'ok',d:1780},
+  {t:'Loading DSA training modules (Java)...',type:'ok',d:1900},
+  {t:'Initializing window manager...',type:'ok',d:2020},
+  {t:'Loading snake.exe and daily_quote...',type:'ok',d:2140},
+  {t:'System ready. Welcome, Jayraj! 🚀',type:'',d:2280},
+];
+const logEl=document.getElementById('boot-log');
+const fillEl=document.getElementById('boot-fill');
+const lblEl=document.getElementById('boot-lbl');
+bootLines.forEach((l,i)=>{
+  setTimeout(()=>{
+    const el=document.createElement('span');
+    el.className='b-line v'+(l.type?' '+l.type:'');
+    el.textContent=l.t;
+    logEl.appendChild(el);
+    logEl.appendChild(document.createElement('br'));
+    logEl.scrollTop=logEl.scrollHeight;
+    const p=Math.round(((i+1)/bootLines.length)*100);
+    fillEl.style.width=p+'%';
+    lblEl.textContent=`LOADING SYSTEM... ${p}%`;
+  },l.d+300);
+});
+setTimeout(showLogin, bootLines[bootLines.length-1].d+900);
+
+/* ═══════════════════ LOGIN ═══════════════════ */
+function showLogin(){
+  document.getElementById('boot').style.display='none';
+  const login=document.getElementById('login');
+  login.style.display='flex';
+  updateLoginTime();setInterval(updateLoginTime,1000);
+  const inp=document.getElementById('login-input');
+  inp.focus();
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+}
+function updateLoginTime(){
+  const now=new Date();
+  document.getElementById('login-time').textContent=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
+  document.getElementById('login-date').textContent=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+}
+function doLogin(){
+  document.getElementById('login').style.display='none';
+  document.getElementById('desktop').style.display='block';
+  document.getElementById('taskbar').style.display='flex';
+  startMatrix();updateClock();setInterval(updateClock,1000);
+  setTimeout(()=>showNotif('Welcome back, Jayraj! 👋','HACK-OS loaded. Double-click icons to open apps.'),800);
+  setTimeout(()=>openWindow('about'),1200);
+}
+
+/* ═══════════════════ MATRIX ═══════════════════ */
+function startMatrix(){
+  const canvas=document.getElementById('matrix-canvas');
+  const ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+  const chars='01アイウエJAYRAJKAMLIYA01BACKEND010101SAKEC';
+  const cols=Math.floor(canvas.width/18);
+  const drops=Array(cols).fill(1);
+  setInterval(()=>{
+    ctx.fillStyle='rgba(3,10,3,0.06)';ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle='#00ff88';ctx.font='12px Share Tech Mono';
+    drops.forEach((y,i)=>{
+      ctx.fillText(chars[Math.floor(Math.random()*chars.length)],i*18,y*18);
+      if(y*18>canvas.height&&Math.random()>.975)drops[i]=0;
+      drops[i]++;
+    });
+  },65);
+  window.addEventListener('resize',()=>{canvas.width=window.innerWidth;canvas.height=window.innerHeight;});
+}
+
+/* ═══════════════════ CLOCK ═══════════════════ */
+function updateClock(){
+  const now=new Date();
+  document.getElementById('tb-clock').textContent=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
+  document.getElementById('tb-date2').textContent=now.toLocaleDateString('en-US',{month:'short',day:'2-digit'}).toUpperCase();
+}
+
+/* ═══════════════════ WINDOW MANAGER ═══════════════════ */
+const wins={about:{},skills:{},projects:{},terminal:{},contact:{},snake:{},quote:{}};
+const winTitles={about:'about.exe',skills:'skills.sh',projects:'projects/',terminal:'terminal',contact:'contact.txt',snake:'snake.exe',quote:'daily_quote'};
+let topZ=200,activeWin=null;
+
+function openWindow(id){
+  const win=document.getElementById('win-'+id);if(!win)return;
+  win.style.display='flex';bringToFront(id);
+  wins[id].open=true;wins[id].minimized=false;
+  updateTaskbar();
+  if(id==='skills')setTimeout(animateBars,300);
+  if(id==='snake')initSnakeCanvas();
+  if(id==='quote')newQuote();
+  closeContextMenu();closeStartMenu();
+}
+function closeWindow(id){
+  const win=document.getElementById('win-'+id);if(!win)return;
+  win.style.display='none';wins[id].open=false;wins[id].minimized=false;
+  if(activeWin===id)activeWin=null;updateTaskbar();
+  if(id==='snake')stopSnake();
+}
+function minWindow(id){
+  const win=document.getElementById('win-'+id);if(!win)return;
+  win.style.display='none';wins[id].minimized=true;wins[id].open=true;
+  if(activeWin===id)activeWin=null;updateTaskbar();
+}
+function maxWindow(id){
+  const win=document.getElementById('win-'+id);if(!win)return;
+  if(win.dataset.maximized==='1'){
+    win.style.width=win.dataset.pw;win.style.height=win.dataset.ph;
+    win.style.left=win.dataset.pl;win.style.top=win.dataset.pt;
+    win.dataset.maximized='0';
+  }else{
+    win.dataset.pw=win.style.width;win.dataset.ph=win.style.height;
+    win.dataset.pl=win.style.left;win.dataset.pt=win.style.top;
+    win.style.width='100vw';win.style.height='calc(100vh - 46px)';
+    win.style.left='0';win.style.top='0';win.dataset.maximized='1';
+  }
+}
+function bringToFront(id){
+  topZ++;
+  const win=document.getElementById('win-'+id);if(!win)return;
+  win.style.zIndex=topZ;
+  document.querySelectorAll('.window').forEach(w=>w.classList.remove('active'));
+  win.classList.add('active');activeWin=id;updateTaskbar();
+}
+function updateTaskbar(){
+  const area=document.getElementById('tb-apps');area.innerHTML='';
+  Object.keys(wins).forEach(id=>{
+    if(wins[id].open||wins[id].minimized){
+      const btn=document.createElement('div');
+      btn.className='tb-app open'+(activeWin===id&&!wins[id].minimized?' active-win':'');
+      btn.textContent=winTitles[id];
+      btn.onclick=()=>{
+        if(wins[id].minimized){openWindow(id);}
+        else if(activeWin===id){minWindow(id);}
+        else{const w=document.getElementById('win-'+id);w.style.display='flex';wins[id].minimized=false;bringToFront(id);}
+      };
+      area.appendChild(btn);
+    }
+  });
+}
+
+/* ═══════════════════ DRAGGING ═══════════════════ */
+document.querySelectorAll('.win-bar').forEach(bar=>{
+  let drag=false,sx=0,sy=0,wx=0,wy=0;
+  const win=bar.parentElement;
+  const id=win.id.replace('win-','');
+  bar.addEventListener('mousedown',e=>{
+    if(e.target.classList.contains('win-dot'))return;
+    drag=true;sx=e.clientX;sy=e.clientY;wx=win.offsetLeft;wy=win.offsetTop;
+    bringToFront(id);e.preventDefault();
+  });
+  document.addEventListener('mousemove',e=>{
+    if(!drag)return;
+    win.style.left=(wx+(e.clientX-sx))+'px';
+    win.style.top=Math.max(0,wy+(e.clientY-sy))+'px';
+  });
+  document.addEventListener('mouseup',()=>drag=false);
+  win.addEventListener('mousedown',()=>bringToFront(id));
+});
+
+/* ═══════════════════ RESIZE ═══════════════════ */
+document.querySelectorAll('[id^="rsz-"]').forEach(h=>{
+  const id=h.id.replace('rsz-','');
+  const win=document.getElementById('win-'+id);
+  let r=false,sx=0,sy=0,sw=0,sh=0;
+  h.addEventListener('mousedown',e=>{r=true;sx=e.clientX;sy=e.clientY;sw=win.offsetWidth;sh=win.offsetHeight;e.preventDefault();e.stopPropagation();});
+  document.addEventListener('mousemove',e=>{if(!r)return;win.style.width=Math.max(300,sw+(e.clientX-sx))+'px';win.style.height=Math.max(180,sh+(e.clientY-sy))+'px';});
+  document.addEventListener('mouseup',()=>r=false);
+});
+
+/* ═══════════════════ SKILL BARS ═══════════════════ */
+function animateBars(){
+  document.querySelectorAll('.s-bar-fill').forEach(b=>b.style.width=b.dataset.w+'%');
+}
+
+/* ═══════════════════ TERMINAL ═══════════════════ */
+const termHist=[];let histIdx=-1;
+const termOut=document.getElementById('term-out');
+const cmds={
+  help:()=>`<span class="t-out">Commands: <span class="t-out hi">whoami, about, skills, projects, contact, education, links, clear, date, ls, open [app], hack, sudo, exit</span></span><br>`,
+  whoami:()=>`<span class="t-out hi">jayraj@hack-os — Jayraj Ashok Kamliya</span><br><span class="t-out dim">Computer Engineering Student | Mumbai, India 🇮🇳</span><br>`,
+  about:()=>`<span class="t-out hi">Name: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Jayraj Kamliya</span><br><span class="t-out hi">Role: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CS Student → Aspiring Backend Dev</span><br><span class="t-out hi">College: &nbsp;&nbsp;SAKEC — B.Tech Computer Engineering</span><br><span class="t-out hi">Location: &nbsp;Mumbai, Maharashtra, India</span><br><span class="t-out hi">Interests: Backend Dev, DSA, Quant Analysis</span><br>`,
+  education:()=>`<span class="t-out hi">🎓 Shah and Anchor Kutchhi Engineering College (SAKEC)</span><br><span class="t-out">   B.Tech — Computer Engineering</span><br><span class="t-out">   Status: Currently Studying</span><br>`,
+  skills:()=>`<span class="t-out">Java &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;████████░░ 82%</span><br><span class="t-out">Python &nbsp;&nbsp;&nbsp;&nbsp;███████░░░ 78%</span><br><span class="t-out">JavaScript ███████░░░ 75%</span><br><span class="t-out">C/C++ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;███████░░░ 70%</span><br><span class="t-out">Node.js &nbsp;&nbsp;&nbsp;██████░░░░ 65%</span><br><span class="t-out">Django &nbsp;&nbsp;&nbsp;&nbsp;██████░░░░ 62%</span><br>`,
+  projects:()=>`<span class="t-out hi">1. Music Converter & Playlist Migrator (🔨 Active)</span><br><span class="t-out dim">   Java | Spotify API | YouTube API</span><br><span class="t-out hi">2. Dynamic Island for Laptop</span><br><span class="t-out dim">   Electron.js | Node.js | JavaScript</span><br><span class="t-out hi">3. Tic Tac Toe</span><br><span class="t-out dim">   Python</span><br><span class="t-out hi">4. SAKEC Experiment Tracker</span><br><span class="t-out dim">   Web Technologies</span><br>`,
+  contact:()=>`<span class="t-out">Email: &nbsp;&nbsp;&nbsp;jayrajkamliya999@gmail.com</span><br><span class="t-out">GitHub: &nbsp;&nbsp;github.com/JayrajAshokKamliya</span><br><span class="t-out">LinkedIn: linkedin.com/in/jayraj-kamliya-167a66291</span><br><span class="t-out">Instagram: @jayraj__kamliya</span><br>`,
+  links:()=>`<span class="t-out hi">🐙 <a href="https://github.com/JayrajAshokKamliya" target="_blank" style="color:var(--cyan)">github.com/JayrajAshokKamliya</a></span><br><span class="t-out hi">💼 <a href="https://www.linkedin.com/in/jayraj-kamliya-167a66291" target="_blank" style="color:var(--cyan)">linkedin.com/in/jayraj-kamliya-167a66291</a></span><br>`,
+  date:()=>`<span class="t-out">${new Date().toString()}</span><br>`,
+  ls:()=>`<span class="t-out hi">about.exe &nbsp;skills.sh &nbsp;projects/ &nbsp;contact.txt &nbsp;snake.exe &nbsp;daily_quote &nbsp;resume.pdf(soon)</span><br>`,
+  clear:()=>{termOut.innerHTML='';return'';},
+  'open about':()=>{openWindow('about');return`<span class="t-out">Launching about.exe...</span><br>`;},
+  'open skills':()=>{openWindow('skills');return`<span class="t-out">Launching skills.sh...</span><br>`;},
+  'open projects':()=>{openWindow('projects');return`<span class="t-out">Launching projects/...</span><br>`;},
+  'open contact':()=>{openWindow('contact');return`<span class="t-out">Launching contact.txt...</span><br>`;},
+  'open snake':()=>{openWindow('snake');return`<span class="t-out">Launching snake.exe... 🐍</span><br>`;},
+  'open quote':()=>{openWindow('quote');return`<span class="t-out">Launching daily_quote...</span><br>`;},
+  sudo:()=>`<span class="t-err">Sorry, you're not in the sudoers file. This incident will be reported. 😂</span><br>`,
+  hack:()=>`<span class="t-out">Initiating hack sequence...</span><br><span class="t-out dim">Just kidding. But hire Jayraj and he'll hack productivity! 🚀</span><br>`,
+  dsa:()=>`<span class="t-out hi">DSA Practice: Active 🔥</span><br><span class="t-out">Language: Java</span><br><span class="t-out">Focus: Data Structures & Algorithms</span><br><span class="t-out dim">Goal: Crack top tech companies!</span><br>`,
+  exit:()=>{shutDown();return'';},
+};
+function handleTermKey(e){
+  const input=document.getElementById('term-input');
+  if(e.key==='Enter'){
+    const cmd=input.value.trim().toLowerCase();
+    if(!cmd){input.value='';return;}
+    termHist.unshift(cmd);histIdx=-1;
+    termOut.innerHTML+=`<span class="t-prompt">jayraj@hack-os:~$</span> <span class="t-cmd">${cmd}</span><br>`;
+    const fn=cmds[cmd];
+    if(fn){termOut.innerHTML+=fn();}
+    else{termOut.innerHTML+=`<span class="t-err">command not found: ${cmd}. Type 'help' for commands.</span><br>`;}
+    termOut.scrollTop=termOut.scrollHeight;input.value='';
+  }else if(e.key==='ArrowUp'){histIdx=Math.min(histIdx+1,termHist.length-1);input.value=termHist[histIdx]||'';e.preventDefault();}
+  else if(e.key==='ArrowDown'){histIdx=Math.max(histIdx-1,-1);input.value=histIdx<0?'':termHist[histIdx];e.preventDefault();}
+}
+
+/* ═══════════════════ SNAKE GAME ═══════════════════ */
+let snakeGame=null,snakeRunning=false,snakeBest=0;
+function initSnakeCanvas(){
+  const canvas=document.getElementById('snake-canvas');
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#030a03';ctx.fillRect(0,0,320,320);
+  ctx.fillStyle='rgba(0,255,136,0.15)';ctx.font='16px Share Tech Mono';
+  ctx.textAlign='center';ctx.fillText('Press START or SPACE to play',160,160);
+}
+function startSnake(){
+  if(snakeRunning){stopSnake();return;}
+  const canvas=document.getElementById('snake-canvas');
+  const ctx=canvas.getContext('2d');
+  const SZ=16,COLS=20,ROWS=20;
+  let snake=[{x:10,y:10}],dir={x:1,y:0},nextDir={x:1,y:0},food=newFood(),score=0,running=true;
+  function newFood(){let f;do{f={x:Math.floor(Math.random()*COLS),y:Math.floor(Math.random()*ROWS)};}while(snake.some(s=>s.x===f.x&&s.y===f.y));return f;}
+  function draw(){
+    ctx.fillStyle='#030a03';ctx.fillRect(0,0,320,320);
+    // Grid
+    ctx.strokeStyle='rgba(0,255,136,0.04)';ctx.lineWidth=0.5;
+    for(let i=0;i<=COLS;i++){ctx.beginPath();ctx.moveTo(i*SZ,0);ctx.lineTo(i*SZ,320);ctx.stroke();}
+    for(let i=0;i<=ROWS;i++){ctx.beginPath();ctx.moveTo(0,i*SZ);ctx.lineTo(320,i*SZ);ctx.stroke();}
+    // Food
+    ctx.fillStyle='#ff4444';ctx.shadowBlur=10;ctx.shadowColor='#ff4444';
+    ctx.fillRect(food.x*SZ+2,food.y*SZ+2,SZ-4,SZ-4);
+    // Snake
+    snake.forEach((seg,i)=>{
+      ctx.shadowBlur=i===0?12:4;ctx.shadowColor=i===0?var_green:'rgba(0,255,136,0.5)';
+      ctx.fillStyle=i===0?'#00ff88':'rgba(0,255,136,0.7)';
+      ctx.fillRect(seg.x*SZ+1,seg.y*SZ+1,SZ-2,SZ-2);
+    });
+    ctx.shadowBlur=0;
+  }
+  const var_green='#00ff88';
+  function step(){
+    if(!running)return;
+    dir=nextDir;
+    const head={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
+    if(head.x<0||head.x>=COLS||head.y<0||head.y>=ROWS||snake.some(s=>s.x===head.x&&s.y===head.y)){
+      running=false;snakeRunning=false;
+      if(score>snakeBest){snakeBest=score;document.getElementById('snake-best').textContent=snakeBest;}
+      ctx.fillStyle='rgba(3,10,3,0.8)';ctx.fillRect(0,0,320,320);
+      ctx.fillStyle='#ff4444';ctx.font='24px VT323';ctx.textAlign='center';
+      ctx.fillText('GAME OVER',160,140);
+      ctx.fillStyle='#00ff88';ctx.font='16px Share Tech Mono';
+      ctx.fillText('Score: '+score,160,170);ctx.fillText('Press START to replay',160,200);
+      return;
+    }
+    snake.unshift(head);
+    if(head.x===food.x&&head.y===food.y){score++;document.getElementById('snake-score').textContent=score;food=newFood();}
+    else snake.pop();
+    draw();
+    snakeGame=setTimeout(step,130);
+  }
+  snakeRunning=true;draw();step();
+  document.getElementById('snake-score').textContent='0';
+  document.addEventListener('keydown',snakeKey);
+  function snakeKey(e){
+    const k={ArrowUp:{x:0,y:-1},ArrowDown:{x:0,y:1},ArrowLeft:{x:-1,y:0},ArrowRight:{x:1,y:0},w:{x:0,y:-1},s:{x:0,y:1},a:{x:-1,y:0},d:{x:1,y:0}};
+    const nd=k[e.key];
+    if(nd&&!(nd.x===-dir.x&&nd.y===-dir.y)){nextDir=nd;e.preventDefault();}
+  }
+}
+function stopSnake(){clearTimeout(snakeGame);snakeRunning=false;}
+document.addEventListener('keydown',e=>{if(e.code==='Space'&&wins.snake.open&&!wins.snake.minimized){startSnake();e.preventDefault();}});
+
+/* ═══════════════════ DAILY QUOTE ═══════════════════ */
+const quotes=[
+  {text:"The best way to predict the future is to create it.",author:"Abraham Lincoln"},
+  {text:"Code is like humor. When you have to explain it, it's bad.",author:"Cory House"},
+  {text:"First, solve the problem. Then, write the code.",author:"John Johnson"},
+  {text:"Programs must be written for people to read, and only incidentally for machines to execute.",author:"Harold Abelson"},
+  {text:"The only way to do great work is to love what you do.",author:"Steve Jobs"},
+  {text:"In theory, theory and practice are the same. In practice, they're not.",author:"Unknown"},
+  {text:"Talk is cheap. Show me the code.",author:"Linus Torvalds"},
+  {text:"Any fool can write code that a computer can understand. Good programmers write code that humans can understand.",author:"Martin Fowler"},
+  {text:"The function of good software is to make the complex appear to be simple.",author:"Grady Booch"},
+  {text:"Simplicity is the soul of efficiency.",author:"Austin Freeman"},
+  {text:"Before software can be reusable it first has to be usable.",author:"Ralph Johnson"},
+  {text:"An idiot admires complexity, a genius admires simplicity.",author:"Terry A. Davis"},
+  {text:"Learning never exhausts the mind.",author:"Leonardo da Vinci"},
+  {text:"The expert in anything was once a beginner.",author:"Helen Hayes"},
+];
+let lastQ=-1;
+function newQuote(){
+  let idx;do{idx=Math.floor(Math.random()*quotes.length);}while(idx===lastQ);
+  lastQ=idx;
+  document.getElementById('quote-text').textContent=quotes[idx].text;
+  document.getElementById('quote-author').textContent='— '+quotes[idx].author;
+}
+
+/* ═══════════════════ RIGHT-CLICK ═══════════════════ */
+document.getElementById('desktop').addEventListener('contextmenu',e=>{
+  e.preventDefault();
+  const menu=document.getElementById('ctx-menu');
+  menu.style.display='block';
+  menu.style.left=Math.min(e.clientX,window.innerWidth-200)+'px';
+  menu.style.top=Math.min(e.clientY,window.innerHeight-200)+'px';
+});
+document.addEventListener('click',()=>closeContextMenu());
+function closeContextMenu(){document.getElementById('ctx-menu').style.display='none';}
+
+/* ═══════════════════ START MENU ═══════════════════ */
+function toggleStart(){
+  const sm=document.getElementById('start-menu');
+  sm.style.display=sm.style.display==='block'?'none':'block';
+}
+function closeStartMenu(){document.getElementById('start-menu').style.display='none';}
+
+/* ═══════════════════ NOTIFICATIONS ═══════════════════ */
+function showNotif(title,msg){
+  const area=document.getElementById('notif-area');
+  const n=document.createElement('div');
+  n.className='notif';
+  n.innerHTML=`<div class="notif-title">${title}</div>${msg}`;
+  area.appendChild(n);
+  setTimeout(()=>n.classList.add('show'),50);
+  setTimeout(()=>{n.classList.remove('show');setTimeout(()=>n.remove(),400);},4500);
+}
+
+/* ═══════════════════ HELPERS ═══════════════════ */
+function selectIcon(el){document.querySelectorAll('.d-icon').forEach(d=>d.classList.remove('selected'));el.classList.add('selected');}
+function openAllWindows(){Object.keys(wins).forEach((id,i)=>setTimeout(()=>openWindow(id),i*120));}
+function closeAllWindows(){Object.keys(wins).forEach(id=>closeWindow(id));}
+function shutDown(){
+  document.getElementById('taskbar').style.display='none';
+  document.getElementById('desktop').style.display='none';
+  document.body.innerHTML='<div style="display:flex;height:100vh;align-items:center;justify-content:center;background:#000;flex-direction:column;gap:16px;font-family:VT323,monospace"><div style="font-size:40px;color:#00ff88;text-shadow:0 0 20px #00ff88">HACK-OS shutting down...</div><div style="font-size:18px;color:#4a7a5a;letter-spacing:3px">Thanks for visiting. — Jayraj Kamliya</div><div style="font-size:14px;color:#1a3020;margin-top:8px">Refresh to restart.</div></div>';
+}
+document.getElementById('desktop').addEventListener('click',e=>{
+  if(!e.target.closest('.d-icon')&&!e.target.closest('.window')&&!e.target.closest('#ctx-menu')&&!e.target.closest('#start-menu')){
+    document.querySelectorAll('.d-icon').forEach(d=>d.classList.remove('selected'));closeStartMenu();
+  }
+});
+</script>
+</body>
+</html>
